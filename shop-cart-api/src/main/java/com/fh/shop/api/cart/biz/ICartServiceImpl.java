@@ -33,6 +33,7 @@ public class ICartServiceImpl implements ICartService {
 
     @Override
     public ServerResponse addItem(Long memberId, Long skuId, Long count) {
+        log.info("====================");
         if (count > countLimit) {
             return ServerResponse.error(ResponseEnum.CART_SKU_COUNT_LIMIT);
         }
