@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <!-- Bootstrap -->
+    <title>订单列表</title>
+    <!-- Bootstrap -->
+    <link href="../js/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<table class="table table-bordered" id="orderTable">
+  <thead>
+    <tr>
+        <th>订单编号</th>
+        <th>金额</th>
+        <th>创建时间</th>
+        <th>订单状态</th>
+        <th>收件人</th>
+        <th>地址</th>
+        <th>电话</th>
+        <th>操作</th>
+    </tr>
+  </thead>
+  <tbody>
+
+  </tbody>
+</table>
+<!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+<script src="../js/jquery-3.3.1.js"></script>
+<script src="../js/jquery.cookie.min.js"></script>
+<!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+<script type="text/javascript" src="../js/common.js"></script>
+<script>
+$(function () {
+    initOrderList();
+})
+
+
+    
+    function initOrderList() {
+        $.ajax({
+            type:"post",
+            url:server_url+"/orders/findOrderList",
+            beforeSend:function(xhr) {
+                var v_token = $.cookie(TOKEN);
+                xhr.setRequestHeader(AUTH, v_token);
+            },
+            success:function (res) {
+                if (res.code == 200) {
+                    var v_orderList = res.data;
+                    var v_html = "";
+                    for (let v_item of v_orderList) {
+                        var v_status = v_item.status;
+                        var v_statusText = "";
+                        if (v_status == 0) {
+                            v_statusText = "未支付";
+                        } else if (v_status == 10) {
+                            v_statusText = "已支付";
+                        } else if (v_status == 40) {
+                            v_statusText = "交易关闭";
+                        }
+                        v_html += '<tr>';
+                        v_html += '<td>'+v_item.id+'</td>';
+                        v_html += '<td style="color: red;font-weight: bold">¥'+v_item.totalPrice+'</td>';
+                        v_html += '<td>'+v_item.createTime+'</td>';
+                        v_html += '<td>'+v_statusText+'</td>';
+                        v_html += '<td>'+v_item.recipientName+'</td>';
+                        v_html += '<td>'+v_item.recipientAddr+'</td>';
+                        v_html += '<td>'+v_item.recipientPhone+'</td>';
+                        v_html += '<td><a href="#" onclick="cancel(\''+v_item.id+'\')">取消订单</a>/<a href="#" onclick="pay(\''+v_item.id+'\')">支付</a></td>';
+                        v_html += '</tr>';
+                    }
+                    $("#orderTable tbody").html(v_html);
+                } else if (res.code == 5100 || res.code == 5103 || res.code == 5101) {
+                    location.href = "login.html";
+                }
+            }
+        })
+    }
+
+   function pay(id) {
+       $.ajax({
+           type: "post",
+           url: server_url + "/pay/aliPay/",
+           beforeSend: function (xhr) {
+               var v_token = $.cookie(TOKEN);
+               xhr.setRequestHeader(AUTH, v_token);
+           },
+           data:{"orderId":id},
+           success: function (res) {
+               if (res.code == 200) {
+                   $("body").html(res.data);
+               }
+           }
+       })
+   }
+
+    function cancel(id) {
+        $.ajax({
+            type: "post",
+            url: server_url + "/orders/cancelOrder/" + id,
+            beforeSend: function (xhr) {
+                var v_token = $.cookie(TOKEN);
+                xhr.setRequestHeader(AUTH, v_token);
+            },
+            success: function (res) {
+                if (res.code == 200) {
+                    initOrderList();
+                }
+            }
+        })
+    }
+</script>
+</body>
+</html>

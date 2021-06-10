@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>注册会员</title>
+    <!-- Bootstrap -->
+    <link href="../js/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <ul class="bg-danger" id="errorDiv"></ul>
+            <form class="form-horizontal" >
+                <div class="form-group">
+                    <label  class="col-sm-2 control-label">会员名:</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control" id="memberName"  placeholder="请输入会员名" onblur="checkMemberName(this.value);">
+                        <div id="memberNameTip"></div>
+
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label  class="col-sm-2 control-label">昵称:</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control" id="nickName"  placeholder="请输入昵称">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label  class="col-sm-2 control-label">密码:</label>
+                    <div class="col-sm-4">
+                        <input type="password" class="form-control" id="password"  placeholder="请输入密码">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label  class="col-sm-2 control-label">确认密码:</label>
+                    <div class="col-sm-4">
+                        <input type="password" class="form-control" id="confirmPassword"  placeholder="请输入确认密码">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label  class="col-sm-2 control-label">手机号:</label>
+                    <div class="col-sm-4">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="phone"  placeholder="请输入手机号" onblur="checkPhone(this.value)">
+                            <span class="input-group-btn">
+                                <button class="btn btn-primary" type="button" onclick="sendCode();" id="codeButton">发送验证码</button>
+                            </span>
+                        </div>
+                        <div id="phoneTip"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label  class="col-sm-2 control-label">短信验证码:</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control" id="code"  placeholder="请输入短信验证码">
+
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label  class="col-sm-2 control-label">邮箱:</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control" id="mail"  placeholder="请输入邮箱" onblur="checkMail(this.value)">
+                        <div id="mailTip"></div>
+                    </div>
+                </div>
+                <!--<img src="http://localhost:8083/api/code"/>-->
+                <div style="text-align: center;">
+                    <button type="button" class="btn btn-primary" id="regButton" onclick="reg();">注册</button>
+                    <button type="reset" class="btn btn-default">重置</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+<script src="../js/jquery-3.3.1.js"></script>
+<!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+<script src="../js/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../js/common.js"></script>
+<script>
+    var v_error = {};
+    function checkMemberName(memberName) {
+        $.ajax({
+            type:"get",
+            url:server_url+"/members/checkMemberName",
+            data:{"memberName":memberName},
+            success:function (res) {
+                if (res.code == 200) {
+                    $("#memberNameTip").html("<span style='color: green'><b>会员名可以用</b></span>");
+                    // $("#regButton").removeAttr("disabled");
+                    delete v_error["memberName"];
+                } else {
+                    $("#memberNameTip").html("<span style='color: red'><b>"+res.msg+"</b></span>");
+                    // $("#regButton").attr("disabled", "disabled");
+                    v_error["memberName"]=res.msg;
+                }
+                validate();
+            }
+        })
+    }
+
+    function checkPhone(phone) {
+        $.ajax({
+            type:"get",
+            url:server_url+"/members/checkPhone",
+            data:{"phone":phone},
+            success:function (res) {
+                if (res.code == 200) {
+                    $("#phoneTip").html("<span style='color: green'><b>手机号可以用</b></span>");
+                    // $("#regButton").removeAttr("disabled");
+                    delete v_error["phone"];
+                } else {
+                    $("#phoneTip").html("<span style='color: red'><b>"+res.msg+"</b></span>");
+                    // $("#regButton").attr("disabled", "disabled");
+                    v_error["phone"]=res.msg;
+                }
+                validate();
+            }
+        })
+    }
+
+    function checkMail(mail) {
+        $.ajax({
+            type:"get",
+            url:server_url+"/members/checkMail",
+            data:{"mail":mail},
+            success:function (res) {
+                if (res.code == 200) {
+                    $("#mailTip").html("<span style='color: green'><b>邮箱可以用</b></span>");
+                    // $("#regButton").removeAttr("disabled");
+                    delete v_error["mail"];
+
+                } else {
+                    $("#mailTip").html("<span style='color: red'><b>"+res.msg+"</b></span>");
+                    // $("#regButton").attr("disabled", "disabled");
+                    v_error["mail"]=res.msg;
+
+                }
+                validate();
+            }
+        })
+    }
+    
+    function validate() {
+        var v_res = [];
+        for (let x in v_error) {
+            v_res.push(v_error[x]);
+        }
+        if (v_res.length > 0) {
+            $("#regButton").attr("disabled", "disabled");
+          //  alert(v_res.join(";"));
+            var v_html = "";
+            for (let e of v_res) {
+                v_html += "<li style='color: red'>"+e+"</li>";
+            }
+            $("#errorDiv").html(v_html);
+        } else {
+            $("#regButton").removeAttr("disabled");
+            $("#errorDiv").html("");
+        }
+    }
+    
+    function count() {
+        v_count--;
+        if (v_count == 0) {
+            // 还原
+            $("#codeButton").html("发送验证码");
+            $("#codeButton").removeAttr("disabled", "disabled");
+            v_count=6;
+            return;
+        }
+        $("#codeButton").html("倒计时"+v_count+"秒");
+        setTimeout(function () {
+            count();
+        }, 1000);
+    }
+    var v_count=6;
+    function sendCode() {
+        if (v_error["phone"]) {
+            return;
+        }
+        var v_phone = $("#phone").val();
+        if (v_phone.length==0) {
+             v_error["phone"]="<span style='color: red'><b>手机号为空</b></span>";
+             $("#phoneTip").html("<span style='color: red'><b>手机号为空</b></span>");
+             validate();
+            return;
+        }
+        $("#codeButton").attr("disabled", "disabled");
+        count();
+        // js进行验证  /sms/sendCode
+        // $.ajax({
+        //     type: "post",
+        //     url: server_url+"/sms/sendCode",
+        //     data: {"phone": v_phone},
+        //     success:function (res) {
+        //         if (res.code != 200) {
+        //             alert(res.msg);
+        //         }
+        //     }
+        // })
+
+    }
+    
+    function reg() {
+        var v_param = {};
+        v_param.memberName = $("#memberName").val();
+        v_param.nickName = $("#nickName").val();
+        v_param.password = $("#password").val();
+        v_param.confirmPassword = $("#confirmPassword").val();
+        v_param.phone = $("#phone").val();
+        v_param.code = $("#code").val();
+        v_param.mail = $("#mail").val();
+
+        $.ajax({
+            type:"post",
+            url:server_url+"/member/reg",
+            data:v_param,
+            success:function (res) {
+                if (res.code == 200) {
+                    alert("ok");
+                } else {
+                    alert(res.msg);
+                }
+            }
+        })
+    }
+</script>
+</body>
+</html>

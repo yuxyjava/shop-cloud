@@ -1,0 +1,19 @@
+eureka:
+  client:
+    register-with-eureka: true #注册到Eureka的注册中心
+    fetch-registry: true #获取注册实例列表
+    service-url:
+      defaultZone: http://localhost:8000/eureka/
+spring:
+  application:
+    name: zuul-server
+server:
+  port: 9000
+zuul:
+  routes:
+    shop-cate-api:
+      path: /cate/**
+  prefix: /api
+
+check:
+  urls: "/api/member/findMember,/api/carts/addCartItem,/api/carts/findCart,/api/carts/findCartCount,/api/carts/deleteCartItem,/api/carts/deleteBatch"
